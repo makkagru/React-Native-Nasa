@@ -57,3 +57,15 @@ export const changeItemName = (itemName) => dispatch => {
     payload: 'opportunity',
   })
 }
+
+export const changeFirtModalValid = () => dispatch => {
+  dispatch({
+    type: 'CHANGE_FIRST_MODAL_VALIDATION',
+  })
+}
+
+export const changeSecondModalValid = () => dispatch => {
+  dispatch({
+    type: 'CHANGE_SECOND_MODAL_VALIDATION',
+  })
+}

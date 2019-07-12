@@ -6,6 +6,8 @@ initialState = {
   loading: false,
   itemName: 'curiosity',
   switchValue: false,
+  firstModalValidation: true,
+  secondModalValidation: false,
 }
 
 export default function reducer (state = initialState, action) {
@@ -57,6 +59,16 @@ export default function reducer (state = initialState, action) {
         itemName: 'curiosity',
       }
     }
+    case 'CHANGE_FIRST_MODAL_VALIDATION':
+      return {
+        ...state,
+        firstModalValidation: !state.firstModalValidation,
+      }
+    case 'CHANGE_SECOND_MODAL_VALIDATION':
+      return {
+        ...state,
+        secondModalValidation: !state.secondModalValidation
+      }
 
     default:
       return {

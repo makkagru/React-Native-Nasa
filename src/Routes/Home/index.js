@@ -5,23 +5,19 @@ import {
   ImageBackground,
   Button,
   TouchableOpacity,
-  Switch
+  Switch,
+  Modal,
 } from 'react-native';
 import { connect } from 'react-redux';
 import { StyleSheet } from 'react-native'; 
-import { getAllItems, setImage, changeLoadingValid, changeSwitchValue, changeItemName} from '../../action.js';
+import { getAllItems, setImage, changeSwitchValue, changeItemName, changeLoadingValidation, changeFirtModalValid, changeSecondModalValid} from '../../action.js';
 import { AsyncStorage } from 'react-native';
 import GestureRecognizer, { swipeDirections } from 'react-native-swipe-gestures';
-import { Header, Container, Icon, Right, Spinner, Bottom, Left} from 'native-base';
+import { Header, Container, Icon, Spinner, Bottom} from 'native-base';
 
 class Home extends React.Component {
 
-  async componentDidMount() {  
-    await AsyncStorage.removeItem('number');
-    await AsyncStorage.removeItem('likes');
-    await AsyncStorage.removeItem('opportunityLikes');
-    await AsyncStorage.removeItem('opportunityNumber');
-
+  async componentDidMount() { 
     await this.props.getAllItems(this.props.app.itemName);
     await this.setImageNumber();
   }
@@ -70,10 +66,16 @@ class Home extends React.Component {
   }
 
   onSwitchChange = async () => {
+    if (!this.props.app.loading) {
+      this.props.changeLoadingValidation();
+    }
     await this.props.changeItemName();
     this.props.changeSwitchValue();
     await this.props.getAllItems(this.props.app.itemName);
     await this.setImageNumber();
+    if (this.props.app.loading) {
+      this.props.changeLoadingValidation();
+    }
   }
 
 
@@ -84,39 +86,95 @@ class Home extends React.Component {
       <Container>
         <Header>
           <View>
-            <Text style={{fontSize: 16, fontWeight: 'bold', width: '100%',}}>
-              Nasa Images
-            </Text>
-          </View>
-          <Right>
-            <TouchableOpacity>
-              <Icon onPress={() => navigate('Likes')} name="heart" style={{color: 'blue', fontSize: 30}} />
-              </TouchableOpacity>
-          </Right>
-        </Header>
-        {this.props.app.loading &&
-          <Spinner color='blue' />
-        }
-        <GestureRecognizer 
-          onSwipeLeft={() => this.changeNumber()}
-          onSwipeRight={() => {this.setLikesImages(); this.changeNumber()}}
-        >
-          <View style={{marginTop: 2}}>
-          {item &&
-            <ImageBackground 
-              source={{uri: `${item.img_src}`}}
-              style={{width: '100%', height: 502}}
-            >
-            <View style={style.switch}>
+            <View style={styles.switch}>
               <Switch
                 value={this.props.app.switchValue}
                 onChange={() => this.onSwitchChange()}
               />
-            </View>
-            </ImageBackground>
-          }
+              <View style={{justifyContent: 'flex-end'}}>
+                <Text style={{fontSize: 7}}>
+                  Toggle Items
+                </Text>
+              </View>
+              </View>
           </View>
-        </GestureRecognizer>
+          <View style={{flex: 8, alignItems: 'center',}}>
+            <View style={{justifyContent: 'center'}}>
+              <Text style={{fontSize: 16, fontWeight: 'bold'}}>
+                Nasa Images
+              </Text>
+            </View>
+            <View style={{justifyContent: 'flex-end'}}>
+              <Text style={{fontSize: 12, top: 4}}>
+                {this.props.app.itemName}
+              </Text>
+            </View>
+          </View>
+          <View style={{flex: 2, alignItems: 'flex-end'}}>
+            <TouchableOpacity>
+              <Icon onPress={() => navigate('Likes')} name="heart" style={{color: 'blue', fontSize: 30}} />
+              </TouchableOpacity>
+          </View>
+        </Header>
+        {this.props.app.loading ? (
+          <View style={styles.loadig}>
+            <Spinner color='blue' />
+          </View>
+        ) : (
+          <GestureRecognizer 
+            onSwipeLeft={() => this.changeNumber()}
+            onSwipeRight={() => {this.setLikesImages(); this.changeNumber()}}
+          >
+            <View style={{marginTop: 2}}>
+            {item &&
+              <ImageBackground 
+                source={{uri: `${item.img_src}`}}
+                style={{width: '100%', height: 502}}
+              >
+              {this.props.app.imageNumber === 0 &&
+                <View>
+                  <Modal
+                    animationType="fade"
+                    transparent={false}
+                    visible={this.props.app.firstModalValidation}
+                  >
+                    <ImageBackground source={require('./space.jpg')} style={{width: '100%', height: '100%'}}>
+                      <View style={styles.tutorial}>
+                        <Text style={{color: '#fff', fontSize: 16}}>
+                          Swipe left to change image
+                        </Text>
+                        <Button title='Ok' onPress={() => {
+                          this.props.changeFirtModalValid();
+                          this.props.changeSecondModalValid();   
+                        }}>
+                        </Button>
+                      </View>
+                    </ImageBackground>
+                  </Modal>
+                  <Modal
+                    visible={this.props.app.secondModalValidation}
+                    animationType="slide"
+                    transparent={false}
+                    >
+                    <ImageBackground source={require('./image.jpg')} style={{width: '100%', height: '100%'}}>
+                      <View style={styles.tutorial}>
+                        <Text style={{fontSize: 16}}>
+                          Swipe right to add to likes
+                        </Text>
+                        <Button title='Got it!' onPress={() => {
+                          this.props.changeSecondModalValid();
+                          }}></Button>
+                      </View>
+                    </ImageBackground>
+                  </Modal>
+                </View>
+              }
+              </ImageBackground>
+            }
+            </View>
+          </GestureRecognizer>
+          )
+        }
         
       </Container>
     );
@@ -134,14 +192,27 @@ const styles = StyleSheet.create({
   text: {
     color: 'red',
     alignItems: 'center',
-    justifyContent: 'center',
+    bottom: 4,
     fontSize: 20,
   },
   switch: {
-    flex: 6,
-    height: '100%',
-    justifyContent: 'flex-end',
+    flex: 3,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
+  loading: {
+    flex: 1,
+    height: '100%',
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  tutorial: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+
 })
 
 const mapStateToProps = state => ({
@@ -151,9 +222,11 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   getAllItems: (itemName) => dispatch(getAllItems(itemName)),
   setImage: (number, item) => dispatch(setImage(number, item)),
-  changeLoadingValid: () => dispatch(changeLoadingValid()),
   changeSwitchValue: () => dispatch(changeSwitchValue()),
   changeItemName: () => dispatch(changeItemName()),
+  changeLoadingValidation: () => dispatch(changeLoadingValidation()),
+  changeFirtModalValid: () => dispatch(changeFirtModalValid()),
+  changeSecondModalValid: () => dispatch(changeSecondModalValid()),
 })
 
 export default connect(mapStateToProps, mapDispatchToProps)(Home);
