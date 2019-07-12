@@ -93,7 +93,7 @@ class Home extends React.Component {
               />
               <View style={{justifyContent: 'flex-end'}}>
                 <Text style={{fontSize: 7}}>
-                  Toggle Items
+                  Switch Items
                 </Text>
               </View>
               </View>
